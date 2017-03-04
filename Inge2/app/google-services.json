@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "208658394445",
+    "project_id": "firebase-inge2"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208658394445:android:2bb3c06607bd98b8",
+        "android_client_info": {
+          "package_name": "com.example.ruth.inge2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "208658394445-i50ba1e3k219gt8150urdqhc6a4436v9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ruth.inge2",
+            "certificate_hash": "81923769c343683de506b508e50e4a067f373ea2"
+          }
+        },
+        {
+          "client_id": "208658394445-li76sm6fo54puii4o6hoccb1bo035l3i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB24H2VLC79AVnTktR-lqZW6mwXHHdyTpw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
