@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -34,7 +35,8 @@ public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
     private ListView lv;
-    ArrayList<String> lista;
+    //ArrayList<String> lista_vacuna;
+    ArrayList<Hijo> lista;
     ArrayAdapter adaptador;
 
     private SignInButton btnSignIn;
@@ -164,6 +166,14 @@ public class MainActivity extends AppCompatActivity
             }else{
                 adaptador = new ArrayAdapter(this, android.R.layout.simple_list_item_1,lista);
                 lv.setAdapter(adaptador);
+                lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Intent intent = new Intent(getApplicationContext(),RegistroVacunacion.class);
+                        intent.putExtra("ci",lista.get(position).getCi());
+                        startActivity(intent);
+                    }
+                });
             }
 
 
