@@ -36,6 +36,12 @@ public class BDatos extends SQLiteOpenHelper {
             "dosis INTEGER,"+
             "tiempo_aplicacion INTEGER)";
 
+    //Tablas de la aplicacion, tiene relacion con el funcionamiento de la aplicacion más que los datos
+
+    String sqlCreateUsuario = "CREATE TABLE usuario (correo TEXT)";
+    String sqlCreateAlarma = "CREATE TABLE alarma (programado INTEGER)";
+
+
     public BDatos (Context contexto, String nombre, SQLiteDatabase.CursorFactory factory, int version) {
         super(contexto, nombre, factory, version);
     }
@@ -46,15 +52,18 @@ public class BDatos extends SQLiteOpenHelper {
         db.execSQL(sqlCreateVacuna);
         db.execSQL(sqlCreateRegistroVacuna);
         db.execSQL(sqlCreateAplicacion);
+        db.execSQL(sqlCreateUsuario);
+        db.execSQL(sqlCreateAlarma);
+
         /*Datos precargados*/
         db.execSQL("INSERT INTO HIJO(ci,nombre,apellido,email,fecha_nac)"+
-                " VALUES(5555,'juan','perez','marcecaballero91@gmail.com','2015-05-16')");
+                " VALUES(5555,'juan','perez','marcecaballero91@gmail.com','2017-03-16')");
 
         db.execSQL("INSERT INTO HIJO(ci,nombre,apellido,email,fecha_nac)"+
-                " VALUES(4444,'jose','perez','marcecaballero91@gmail.com','2015-04-20')");
+                " VALUES(4444,'jose','perez','marcecaballero91@gmail.com','2017-04-23')");
 
         db.execSQL("INSERT INTO HIJO(ci,nombre,apellido,email,fecha_nac)"+
-                " VALUES(4444,'jose','fulano','marcecaballero91@gmail.com','2016-03-12')");
+                " VALUES(3333,'pedro','fulano','marcecaballero91@gmail.com','2017-04-12')");
 
         db.execSQL("INSERT INTO registro_vacuna(id,ci_hijo,id_aplicacion,fecha_aplicacion)"+
                 " VALUES(1,5555,1,'2016-03-12')");
@@ -103,6 +112,10 @@ public class BDatos extends SQLiteOpenHelper {
         db.execSQL("insert into APLICACION(id,vacuna,dosis,tiempo_aplicacion) values(22,3,5,48)");
         db.execSQL("insert into APLICACION(id,vacuna,dosis,tiempo_aplicacion) values(23,10,2,48)");
         db.execSQL("insert into APLICACION(id,vacuna,dosis,tiempo_aplicacion) values(24,6,2,48)");
+
+        //datos de la aplicacion
+        db.execSQL("INSERT INTO Usuario(correo)"+ " VALUES(null)");
+        db.execSQL("INSERT INTO alarma(programado)"+ " VALUES(0)");
     }
 
     @Override
@@ -169,5 +182,68 @@ public class BDatos extends SQLiteOpenHelper {
         }
 
         return lista;
+    }
+
+    public void setUsuarioLogueado(String correo){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("UPDATE usuario SET correo='"+correo+"'");
+    }
+
+    public String getUsuarioLogueado(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String correo = null;
+        Cursor c = db.rawQuery("select correo from usuario",null);
+        if(c.moveToFirst()){
+            correo = c.getString(0);
+        }
+        return correo;
+    }
+
+    public ArrayList<Historial> historial_vacunas_no_aplicadas (String ci) {
+        ArrayList<Historial> lista = new ArrayList<>();
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery("select vacuna, fecha from (select v.nombre||' '|| a.dosis as vacuna,"+
+                        "date((select fecha_nac from hijo where ci=?),'+'||a.tiempo_aplicacion ||' month') as fecha "+
+                        "from aplicacion a, vacuna v  "+
+                        "where a.vacuna = v.id and a.id not in (select id_aplicacion from registro_vacuna where ci_hijo = ?)"+
+                        "order by 2) registro where fecha < date('now','+3 day')"
+
+                , new String[]{ci,ci});
+
+        if (c.moveToFirst()) {
+            do {
+
+                String nombre = c.getString(0);
+                String fecha = c.getString(1);
+
+                lista.add(new Historial(nombre,fecha,"No"));
+
+            } while(c.moveToNext());
+
+        }
+
+        return lista;
+    }
+
+
+    public void programarAlarma(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("UPDATE alarma SET programado = 1");
+    }
+
+    public void desprogramarAlarma(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("UPDATE alarma SET programado = 0");
+    }
+
+    public int getAlarma(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        int programado = 0;
+        Cursor c = db.rawQuery("select programado from alarma",null);
+        if(c.moveToFirst()){
+            programado = c.getInt(0);
+        }
+        return programado;
     }
 }

@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     //ArrayList<String> lista_vacuna;
     ArrayList<Hijo> lista;
     ArrayAdapter adaptador;
+    Alarma alarma = null;
 
     private SignInButton btnSignIn;
     private Button btnSignOut;
@@ -107,8 +108,14 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onResult(Status status) {
                                 updateUI(false);
+
                             }
                         });
+                if(usdbh.getAlarma() == 1){
+                    alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                    alarma.cancel();
+                    usdbh.desprogramarAlarma();
+                }
             }
         });
 
@@ -117,12 +124,21 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 Auth.GoogleSignInApi.revokeAccess(apiClient).setResultCallback(
                         new ResultCallback<Status>() {
+
                             @Override
                             public void onResult(Status status) {
+
                                 updateUI(false);
+
                             }
                         });
+                if(usdbh.getAlarma() == 1){
+                    alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                    alarma.cancel();
+                    usdbh.desprogramarAlarma();
+                }
             }
+
         });
 
         updateUI(false);
@@ -151,9 +167,14 @@ public class MainActivity extends AppCompatActivity
     private void handleSignInResult(GoogleSignInResult result) {
         if (result.isSuccess()) {
             //Usuario logueado --> Mostramos sus datos
+
+
+
             GoogleSignInAccount acct = result.getSignInAccount();
             txtNombre.setText(acct.getDisplayName());
             txtEmail.setText(acct.getEmail());
+            // guarda el email de usuario en la base de datos//
+            usdbh.setUsuarioLogueado(acct.getEmail());
 
             // Listar hijos
             lista = usdbh.obtener_lista_hijos(acct.getEmail());
@@ -164,6 +185,13 @@ public class MainActivity extends AppCompatActivity
 
                 toast1.show();
             }else{
+                //Si tiene hijos, lanzamos la alarma//
+                if(usdbh.getAlarma() == 0) {
+                    alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                    alarma.start();
+                    usdbh.programarAlarma();
+                }
+
                 adaptador = new ArrayAdapter(this, android.R.layout.simple_list_item_1,lista);
                 lv.setAdapter(adaptador);
                 lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -199,6 +227,7 @@ public class MainActivity extends AppCompatActivity
             btnSignIn.setVisibility(View.VISIBLE);
             btnSignOut.setVisibility(View.GONE);
             btnRevoke.setVisibility(View.GONE);
+
         }
     }
 
