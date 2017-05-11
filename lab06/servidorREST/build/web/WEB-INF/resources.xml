@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+  <Resource id="BDatos" type="javax.sql.DataSource">#Mon May 01 11:51:41 GMT-04:00 2017
+jdbcDriver=org.postgresql.Driver
+password=bdatos
+userName=postgres
+jdbcUrl=jdbc\:postgresql\://localhost\:5432/BD_ing
+</Resource>
+</resources>
