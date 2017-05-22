@@ -2,6 +2,7 @@ package com.example.acer.myapplication;
 
 
 
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.ProgressDialog;
@@ -29,7 +30,20 @@ import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
@@ -39,6 +53,7 @@ public class MainActivity extends AppCompatActivity
     ArrayList<Hijo> lista;
     ArrayAdapter adaptador;
     Alarma alarma = null;
+    Usuario usuario = null;
 
     private SignInButton btnSignIn;
     private Button btnSignOut;
@@ -173,39 +188,93 @@ public class MainActivity extends AppCompatActivity
             GoogleSignInAccount acct = result.getSignInAccount();
             txtNombre.setText(acct.getDisplayName());
             txtEmail.setText(acct.getEmail());
-            // guarda el email de usuario en la base de datos//
-            usdbh.setUsuarioLogueado(acct.getEmail());
 
-            // Listar hijos
-            lista = usdbh.obtener_lista_hijos(acct.getEmail());
-            if(lista.isEmpty()){
-                Toast toast1 =
-                        Toast.makeText(getApplicationContext(),
-                                "No tiene hijos", Toast.LENGTH_SHORT);
 
-                toast1.show();
-            }else{
-                //Si tiene hijos, lanzamos la alarma//
-                if(usdbh.getAlarma() == 0) {
-                    alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
-                    alarma.start();
-                    usdbh.programarAlarma();
+            //------------------------------------------------------------------
+            boolean exc = false;
+            boolean existeUsuario = false;
+            TareaWSObtener tarea = new TareaWSObtener();
+            try {
+                tarea.execute(acct.getEmail()).get(3000, TimeUnit.MILLISECONDS);
+            }catch(ExecutionException e){
+                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+                exc = true;
+
+            }catch(InterruptedException e){
+                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+                exc = true;
+            }
+            catch(TimeoutException e){
+                exc = true;
+                Toast.makeText(MainActivity.this, "no se pudo conectarse con el servidor", Toast.LENGTH_SHORT).show();
+            }
+            if (usuario != null) {
+                existeUsuario = true;
+            }
+            if(!exc && usuario == null) {
+                //no exste correo en la base de datos
+                Toast.makeText(MainActivity.this, "no existe correo en la base de datos", Toast.LENGTH_SHORT).show();
+
+            }
+            //-------------------------------------------------------------------
+            if(existeUsuario) {
+                   // guarda el email de usuario en la base de datos//
+                usdbh.setUsuarioLogueado(acct.getEmail());
+
+                // Listar hijos
+                boolean exc2 = false;
+                TareaWSObtenerHijos tarea2 = new TareaWSObtenerHijos();
+                try {
+                    tarea2.execute("marcecaballero91@gmail.com").get(3000, TimeUnit.MILLISECONDS);
+                }catch(ExecutionException e){
+                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+                    exc2 = true;
+
+                }catch(InterruptedException e){
+                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+                    exc2 = true;
+                }
+                catch(TimeoutException e){
+                    exc2 = true;
+                    Toast.makeText(MainActivity.this, "no se pudo conectarse con el servidor", Toast.LENGTH_SHORT).show();
                 }
 
-                adaptador = new ArrayAdapter(this, android.R.layout.simple_list_item_1,lista);
-                lv.setAdapter(adaptador);
-                lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Intent intent = new Intent(getApplicationContext(),RegistroVacunacion.class);
-                        intent.putExtra("ci",lista.get(position).getCi());
-                        startActivity(intent);
+                if (exc2 == true) {//no se consulto
+                    lista = new ArrayList<Hijo>();
+                }
+               // lista = usdbh.obtener_lista_hijos(acct.getEmail());
+
+                if (lista.isEmpty()) {
+                    Toast toast1 =
+                               Toast.makeText(getApplicationContext(),
+                                       "No tiene hijos", Toast.LENGTH_SHORT);
+
+                       toast1.show();
+                } else {
+                       //Si tiene hijos, lanzamos la alarma//
+                    if (usdbh.getAlarma() == 0) {
+                        alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                        alarma.start();
+                        usdbh.programarAlarma();
                     }
-                });
+
+                    adaptador = new ArrayAdapter(this, android.R.layout.simple_list_item_1, lista);
+                    lv.setAdapter(adaptador);
+                    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                           @Override
+                           public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                               Intent intent = new Intent(getApplicationContext(), RegistroVacunacion.class);
+                               intent.putExtra("ci", lista.get(position).getCi());
+                               startActivity(intent);
+                           }
+                       });
+                }
+
+
+                updateUI(true);
+            }else{
+                updateUI(false);
             }
-
-
-            updateUI(true);
         } else {
             //Usuario no logueado --> Lo mostramos como "Desconectado"
             updateUI(false);
@@ -265,5 +334,120 @@ public class MainActivity extends AppCompatActivity
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.hide();
         }
+    }
+    private class TareaWSObtener extends AsyncTask<String,Integer,Boolean> {
+
+        private int idCli;
+        private String nombCli;
+        private String correoCli;
+
+        protected void onPreExecute(){
+            //Toast.makeText(MainActivity.this, "Conectando con el servidor...", Toast.LENGTH_SHORT).show();
+        }
+
+        protected Boolean doInBackground(String... params) {
+
+            boolean resul = true;
+
+            HttpClient httpClient = new DefaultHttpClient();
+
+            String id = params[0];
+
+
+            HttpGet del =
+                    new HttpGet("http://192.168.42.9:8080/rest/webresources/paquete.usuarios/"+id);
+
+            del.setHeader("content-type", "application/json");
+
+            try
+            {
+                HttpResponse resp = httpClient.execute(del);
+                String respStr = EntityUtils.toString(resp.getEntity());
+
+                JSONObject respJSON = new JSONObject(respStr);
+
+                if(respJSON.has("correo") && respJSON.has("id") && respJSON.has("nombre")){
+                    correoCli = respJSON.getString("correo");
+                    idCli = respJSON.getInt("id");
+                    nombCli = respJSON.getString("nombre");
+                    usuario = new Usuario(idCli,correoCli,nombCli);
+
+                }
+
+
+            }
+            catch(Exception ex)
+            {
+                Log.e("ServicioRest","Error!", ex);
+
+                resul = false;
+            }
+
+            return resul;
+        }
+    }
+    private class TareaWSObtenerHijos extends AsyncTask<String,Integer,Boolean> {
+
+        private int idCli;
+        private String nombCli;
+        private String correoCli;
+
+        protected void onPreExecute(){
+            //Toast.makeText(MainActivity.this, "Conectando con el servidor...", Toast.LENGTH_SHORT).show();
+        }
+
+        protected Boolean doInBackground(String... params) {
+
+            boolean resul = true;
+
+            HttpClient httpClient = new DefaultHttpClient();
+
+            String id = params[0];
+
+
+            HttpGet del =
+                    new HttpGet("http://192.168.0.20:8080/rest/webresources/paquete.hijos/hijos?correo="+id);
+
+            del.setHeader("content-type", "application/json");
+
+            try
+            {
+                HttpResponse resp = httpClient.execute(del);
+                String respStr = EntityUtils.toString(resp.getEntity());
+
+                JSONArray respJSON = new JSONArray(respStr);
+                ArrayList<Hijo> listahijos= new ArrayList<Hijo>();
+
+                for(int i=0; i<respJSON.length();i++){
+
+                    JSONObject obj = respJSON.getJSONObject(i);
+                    String apellido = obj.getString("apellido");
+                    int ci = obj.getInt("ci");
+
+                    String email = obj.getString("email");
+                    String fecha_nac = obj.getString("fechaNac");
+                    String nombre = obj.getString("nombre");
+
+                    Hijo hijo = new Hijo(ci,nombre,apellido,email,fecha_nac);
+                    listahijos.add(hijo);
+                }
+                lista = listahijos;
+
+
+            }
+            catch(IOException ex)
+            {
+                Log.e("ServicioRest","Error!", ex);
+
+                resul = false;
+            }catch(JSONException ex){
+                Log.e("ServicioRest","Error!", ex);
+
+                resul = false;
+            }
+
+            return resul;
+        }
+
     }
 }

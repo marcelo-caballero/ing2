@@ -28,6 +28,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        usdbh = new BDatos(context, "DBUsuarios", null, 1);
 
         //Se ejecuta cuando se lo pida en la aplicacion
         if (intent.getAction()== null) {
@@ -35,7 +36,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 
 
-            usdbh = new BDatos(context, "DBUsuarios", null, 1);
+
             String cuenta = usdbh.getUsuarioLogueado();
             ArrayList<Hijo> hijos = usdbh.obtener_lista_hijos(cuenta);
             ArrayList<Historial> vacuna_no_aplicada;
@@ -59,18 +60,14 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 
 
-
-
-
-
-
-
-
             //Se emite una vez, cuando se termina de encender el dispositivo, se ejecuta despues de que el usuario ingresó su
             //pin o patron por primera vez
         }else if(intent.getAction().equals("android.intent.action.BOOT_COMPLETED")){
-            Alarma alarma = new Alarma(context,AlarmReceiver.class);
-            alarma.start();
+            if(usdbh.getAlarma() == 1) {
+                Alarma alarma = new Alarma(context, AlarmReceiver.class);
+                alarma.start();
+            }
+
 
         }
 
