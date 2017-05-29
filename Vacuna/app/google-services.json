@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "851751976326",
+    "project_id": "firebase-vacuna"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851751976326:android:899e6706c42ce799",
+        "android_client_info": {
+          "package_name": "com.example.acer.vacuna"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "851751976326-t4sq2aeop47qke2l3nhplti36554sla5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.acer.vacuna",
+            "certificate_hash": "cc3e0ada33f69c63357366926f0810bd78d0d8a8"
+          }
+        },
+        {
+          "client_id": "851751976326-etfk2edknav9ac54j4br7jm07dfpsgnu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1w7gizLGomhleDwtaQpNvgh7phjfqsIk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

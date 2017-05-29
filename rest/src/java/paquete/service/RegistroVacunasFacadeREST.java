@@ -8,6 +8,7 @@ package paquete.service;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.OrderBy;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -24,34 +25,34 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import paquete.Hijos;
+import paquete.RegistroVacunas;
 
 /**
  *
  * @author Acer
  */
 @Stateless
-@Path("paquete.hijos")
-public class HijosFacadeREST extends AbstractFacade<Hijos> {
+@Path("paquete.registrovacunas")
+public class RegistroVacunasFacadeREST extends AbstractFacade<RegistroVacunas> {
 
     @PersistenceContext(unitName = "restPU")
     private EntityManager em;
 
-    public HijosFacadeREST() {
-        super(Hijos.class);
+    public RegistroVacunasFacadeREST() {
+        super(RegistroVacunas.class);
     }
 
     @POST
     @Override
-    @Consumes({MediaType.APPLICATION_JSON})
-    public void create(Hijos entity) {
+    @Consumes({ MediaType.APPLICATION_JSON})
+    public void create(RegistroVacunas entity) {
         super.create(entity);
     }
 
     @PUT
     @Path("{id}")
     @Consumes({ MediaType.APPLICATION_JSON})
-    public void edit(@PathParam("id") Integer id, Hijos entity) {
+    public void edit(@PathParam("id") Integer id, RegistroVacunas entity) {
         super.edit(entity);
     }
 
@@ -61,49 +62,54 @@ public class HijosFacadeREST extends AbstractFacade<Hijos> {
         super.remove(super.find(id));
     }
 
-    /*@GET
+   /* @GET
     @Path("{id}")
     @Produces({ MediaType.APPLICATION_JSON})
-    public Hijos find(@PathParam("id") Integer id) {
+    public RegistroVacunas find(@PathParam("id") Integer id) {
         return super.find(id);
     }*/
 
     @GET
     @Override
     @Produces({ MediaType.APPLICATION_JSON})
-    public List<Hijos> findAll() {
+    public List<RegistroVacunas> findAll() {
         return super.findAll();
     }
 
     /*@GET
     @Path("{from}/{to}")
     @Produces({ MediaType.APPLICATION_JSON})
-    public List<Hijos> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
+    public List<RegistroVacunas> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
         return super.findRange(new int[]{from, to});
     }*/
+    
+    @GET
+    @Path("/vacuna")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> buscar(@QueryParam("ciHijo") String ci) {
+        
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<RegistroVacunas> criteriaQuery = criteriaBuilder.createQuery(RegistroVacunas.class);
+        Root<RegistroVacunas> from = criteriaQuery.from(RegistroVacunas.class);
+        Predicate condition = criteriaBuilder.equal(from.get("ciHijo"), ci);
+        
+        criteriaQuery.where(condition);
+        Query query = em.createQuery(criteriaQuery);
+        
+        
+        List<RegistroVacunas> lista = (List<RegistroVacunas>)query.getResultList();
+        
+        
+        return lista;
+        
+    }
 
     @GET
     @Path("count")
     @Produces(MediaType.TEXT_PLAIN)
     public String countREST() {
         return String.valueOf(super.count());
-    }
-    
-    @GET
-    @Path("/hijos")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<Hijos> buscar(@QueryParam("correo") String correo) {
-        
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<Hijos> criteriaQuery = criteriaBuilder.createQuery(Hijos.class);
-        Root<Hijos> from = criteriaQuery.from(Hijos.class);
-        Predicate condition = criteriaBuilder.equal(from.get("email"), correo);
-        
-        criteriaQuery.where(condition);
-        Query query = em.createQuery(criteriaQuery);
-        
-        return query.getResultList();
-        
     }
 
     @Override

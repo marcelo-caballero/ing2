@@ -30,6 +30,7 @@ public class ApplicationConfig extends Application {
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(paquete.service.HijosFacadeREST.class);
+        resources.add(paquete.service.RegistroVacunasFacadeREST.class);
         resources.add(paquete.service.UsuariosFacadeREST.class);
     }
     
