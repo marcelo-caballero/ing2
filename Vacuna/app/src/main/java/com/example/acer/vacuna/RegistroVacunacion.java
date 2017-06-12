@@ -21,36 +21,46 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.concurrent.TimeUnit;
 
 public class RegistroVacunacion extends AppCompatActivity {
+    // numero de columna relacionada con los datos
+    static final  private int VACUNA = 1;
+    static final private int FECHA = 2;
+    static final private int APLICADA = 3;
+
+    //orden de listas
+    static final private int ASC = 1;
+    static final private int DESC = 2;
 
 
+
+        //Indica el estado del ordenado de la tabla
         public class Estado{
-            String columna;
-            String orden;
+            int columna;
+            int orden;
 
-            public Estado(String columna, String orden) {
+            public Estado(int columna, int orden) {
                 this.columna = columna;
                 this.orden = orden;
             }
         }
 
-        Hashtable<String,String> campo_tabla;
-
 
         ArrayList<TextView[]> tv = new ArrayList<>();
-        ArrayList<Historial> lista_vacuna = new ArrayList<Historial>();
+        ArrayList<Historial> lista = new ArrayList<Historial>();
+
 
         TableLayout tablelayout ;
         TableRow row;
         TableRow.LayoutParams lp;
+        //cabeceras de la tabla
         TextView c_vacuna;
         TextView c_fecha;
         TextView c_aplicada;
-        String ci ;
-        Estado e;
+
+        String ci ;// cedula del hijo
+        Estado e; //el estado del orden que se encuentra la tabla
 
 
 
@@ -59,23 +69,18 @@ public class RegistroVacunacion extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_registro_vacunacion);
 
+            ci = Integer.toString(getIntent().getExtras().getInt("ci"));
+
+            //la tabla ordenada por vacuna en forma asc
+            e = new Estado(VACUNA ,ASC);
 
 
-
-            //Orden de las columnas de la tabla
-            campo_tabla = new Hashtable<String,String>();
-            campo_tabla.put("vacuna","1");
-            campo_tabla.put("fecha","2");
-            campo_tabla.put("aplicada","3");
-
-            //Estado del ordenado de la tabla
-            e = new Estado("1","asc");
+            obtener_lista();
 
 
-            inicializar_lista_vacunas();
             crear_tabla();
-            crear_filas(lista_vacuna.size());
-            cargar_tabla(lista_vacuna.size());
+            crear_filas();
+            cargar_tabla(lista.size());
 
             c_aplicada.setTextColor(Color.RED);
             c_vacuna.setTextColor(Color.RED);
@@ -84,9 +89,10 @@ public class RegistroVacunacion extends AppCompatActivity {
 
         }
 
-        private void inicializar_lista_vacunas() {
-
-            ci = Integer.toString(getIntent().getExtras().getInt("ci"));
+    /**
+     * Obtiene la lista del registro de vacunacion, utilizando el servicio web
+     */
+    private void obtener_lista() {
             /*llama al servicio web*/
             obtenerVacuna servicio = new obtenerVacuna();
             try{
@@ -99,21 +105,30 @@ public class RegistroVacunacion extends AppCompatActivity {
 
         }
 
+    /**
+     * Carga la tabla con los valores obtenidos de la lista
+     * @param tamano
+     */
+
         private void cargar_tabla(int tamano) {
 
             for(int i = 0; i<tamano; i++){
-                tv.get(i)[0].setText(lista_vacuna.get(i).getVacuna());
-                tv.get(i)[1].setText(lista_vacuna.get(i).getFecha());
-                tv.get(i)[2].setText(lista_vacuna.get(i).getAplicada());
+                tv.get(i)[0].setText(lista.get(i).getVacuna());
+                tv.get(i)[1].setText(lista.get(i).getFecha());
+                tv.get(i)[2].setText(lista.get(i).getAplicada());
 
             }
 
         }
 
-        private void crear_filas(int tamano) {
+    /**
+     * Crea las filas de la tabla con 3 columnas
+     *
+     */
+        private void crear_filas() {
 
 
-            for (int i = 0; i < lista_vacuna.size(); i++) {
+            for (int i = 0; i < lista.size(); i++) {
 
                 row = new TableRow(this);
                 lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT);
@@ -122,11 +137,11 @@ public class RegistroVacunacion extends AppCompatActivity {
                 TextView fecha = new TextView(this);
                 TextView aplicada = new TextView(this);
 
-                //c_vacuna.setText(lista_vacuna.get(i).getVacuna());
+                //c_vacuna.setText(lista.get(i).getVacuna());
                 vacuna.setPadding(3, 3, 3, 3);
-                //c_fecha.setText(lista_vacuna.get(i).getFecha());
+                //c_fecha.setText(lista.get(i).getFecha());
                 fecha.setPadding(3, 3, 3, 3);
-                // c_aplicada.setText(lista_vacuna.get(i).getAplicada());
+                // c_aplicada.setText(lista.get(i).getAplicada());
                 aplicada.setPadding(3, 3, 3, 3);
                 row.addView(vacuna);
                 row.addView(fecha);
@@ -141,6 +156,9 @@ public class RegistroVacunacion extends AppCompatActivity {
             }
         }
 
+        /** Crea la cabecera de la tabla
+         *
+         */
         private void crear_tabla() {
 
 
@@ -167,35 +185,36 @@ public class RegistroVacunacion extends AppCompatActivity {
             row.addView(c_aplicada);
             tablelayout.addView(row, 0);
 
-            //establecer_onclick_cabeceras();
+            establecer_onclick_cabeceras();
         }
 
+    /**
+     * Establece las acciones que se ejecutaran al momento de dar click
+     */
         private void establecer_onclick_cabeceras() {
 
             c_vacuna.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String inst;
-                    if(e.columna.equals(campo_tabla.get("vacuna"))){
-                        if(e.orden.equals("asc")){
-                            e.orden = "desc";
-                            inst = campo_tabla.get("vacuna")+" desc";
+
+                    if(e.columna == VACUNA){
+                        if(e.orden == ASC){
+                            e.orden = DESC;
                             c_vacuna.setText("↓VACUNA");
                         }else{
-                            e.orden = "asc";
-                            inst = campo_tabla.get("vacuna")+" asc";
+                            e.orden = ASC;
                             c_vacuna.setText("↑VACUNA");
                         }
                     }else{
-                        inst = campo_tabla.get("vacuna")+" asc";
-                        e.columna = campo_tabla.get("vacuna");
-                        e.orden = "asc";
+
+                        e.columna = VACUNA;
+                        e.orden = ASC;
                         c_vacuna.setText("↑VACUNA");
                     }
                     c_fecha.setText("FECHA");
                     c_aplicada.setText("APLICADA");
-                    //lista_vacuna = db.historial_paciente(ci,inst);
-                    cargar_tabla(lista_vacuna.size());
+                    obtener_lista();
+                    cargar_tabla(lista.size());
 
 
 
@@ -206,27 +225,25 @@ public class RegistroVacunacion extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-                    String inst;
-                    if(e.columna.equals(campo_tabla.get("fecha"))){
-                        if(e.orden.equals("asc")){
-                            e.orden = "desc";
-                            inst = campo_tabla.get("fecha")+" desc";
+
+                    if(e.columna == FECHA){
+                        if(e.orden == ASC){
+                            e.orden = DESC;
                             c_fecha.setText("↓FECHA");
                         }else{
-                            e.orden = "asc";
-                            inst = campo_tabla.get("fecha")+" asc";
+                            e.orden = ASC;
                             c_fecha.setText("↑FECHA");
                         }
                     }else{
-                        inst = campo_tabla.get("fecha")+" asc";
-                        e.columna = campo_tabla.get("fecha");
-                        e.orden = "asc";
+
+                        e.columna = FECHA;
+                        e.orden = ASC;
                         c_fecha.setText("↑FECHA");
                     }
                     c_vacuna.setText("VACUNA");
                     c_aplicada.setText("APLICADA");
-                    //lista_vacuna = db.historial_paciente(ci,inst);
-                    cargar_tabla(lista_vacuna.size());
+                    obtener_lista();
+                    cargar_tabla(lista.size());
 
 
 
@@ -238,28 +255,26 @@ public class RegistroVacunacion extends AppCompatActivity {
                 public void onClick(View v) {
 
                     String inst;
-                    if(e.columna.equals(campo_tabla.get("aplicada"))){
-                        if(e.orden.equals("asc")){
-                            e.orden = "desc";
-                            inst = campo_tabla.get("aplicada")+" desc";
+                    if(e.columna == APLICADA){
+                        if(e.orden == ASC){
+                            e.orden = DESC;
+
                             c_aplicada.setText("↓APLICADA");
                         }else{
-                            e.orden = "asc";
-                            inst = campo_tabla.get("aplicada")+" asc";
+                            e.orden = ASC;
                             c_aplicada.setText("↑APLICADA");
                         }
                     }else{
-                        inst = campo_tabla.get("aplicada")+" asc";
-                        e.columna = campo_tabla.get("aplicada");
-                        e.orden = "asc";
+                        e.columna = APLICADA;
+                        e.orden = ASC;
                         c_aplicada.setText("↑APLICADA");
                     }
 
-                    //lista_vacuna = db.historial_paciente(ci,inst);
+
                     c_fecha.setText("FECHA");
                     c_vacuna.setText("VACUNA");
-                    cargar_tabla(lista_vacuna.size());
-
+                    obtener_lista();
+                    cargar_tabla(lista.size());
 
 
                 }
@@ -268,7 +283,7 @@ public class RegistroVacunacion extends AppCompatActivity {
 
     private class obtenerVacuna extends AsyncTask<String,Void,Void> {
         Historial historial;
-
+        String direccion = getIntent().getExtras().getString("direccion_ip") + "/rest/webresources/paquete.registrovacunas";
         protected Void doInBackground(String... params) {
 
             boolean resul = true;
@@ -278,8 +293,29 @@ public class RegistroVacunacion extends AppCompatActivity {
             HttpClient httpClient = new DefaultHttpClient();
 
 
-            HttpGet del =
-                    new HttpGet("http://192.168.0.14:8080/rest/webresources/paquete.registrovacunas/vacuna?ciHijo="+ci);
+            HttpGet del = new HttpGet(direccion+"/vacuna/asc?ciHijo=" + ci);
+
+            if(e.columna == VACUNA) {
+                if(e.orden == ASC){
+                    del = new HttpGet(direccion+"/vacuna/asc?ciHijo=" + ci);
+                }else{
+                    del = new HttpGet(direccion+"/vacuna/desc?ciHijo=" + ci);
+                }
+            }
+            if(e.columna == FECHA) {
+                if(e.orden == ASC){
+                    del = new HttpGet(direccion+"/fecha/asc?ciHijo=" + ci);
+                }else{
+                    del = new HttpGet(direccion+"/fecha/desc?ciHijo=" + ci);
+                }
+            }
+            if(e.columna == APLICADA) {
+                if(e.orden == ASC){
+                    del = new HttpGet(direccion+"/aplicada/asc?ciHijo=" + ci);
+                }else{
+                    del = new HttpGet(direccion+"/aplicada/desc?ciHijo=" + ci);
+                }
+            }
 
             del.setHeader("content-type", "application/json");
 
@@ -290,7 +326,7 @@ public class RegistroVacunacion extends AppCompatActivity {
 
                 JSONArray respJSON = new JSONArray(respStr);
 
-                lista_vacuna = new ArrayList<Historial>();
+                lista = new ArrayList<Historial>();
 
                 for(int i=0; i<respJSON.length();i++){
 
@@ -301,7 +337,7 @@ public class RegistroVacunacion extends AppCompatActivity {
                     String nombreVacuna = obj.getString("nombreVacuna");
 
                     historial = new Historial(nombreVacuna,fecha,aplicada);
-                    lista_vacuna.add(historial);
+                    lista.add(historial);
 
                 }
 

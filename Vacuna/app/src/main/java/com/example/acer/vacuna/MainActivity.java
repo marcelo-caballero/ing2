@@ -48,7 +48,7 @@ import java.util.concurrent.TimeoutException;
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String direccion_ip = "http://192.168.0.14:8080";
+    private static final String direccion_ip = "http://192.168.42.4:8080";
     private ListView lv;
     private ArrayList<Hijo> lista_hijos = null;
     ArrayAdapter adaptador;
@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity
             }
 
             if(error) {
-                Toast.makeText(MainActivity.this, "Error del sw", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Error en la comunicacion", Toast.LENGTH_SHORT).show();
 
             }else{
                 if (usuario != null) {
@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                 Intent intent = new Intent(getApplicationContext(), RegistroVacunacion.class);
                                 intent.putExtra("ci", lista_hijos.get(position).getCi());
+                                intent.putExtra("direccion_ip",direccion_ip);
                                 startActivity(intent);
                             }
                         });

@@ -5,12 +5,15 @@
  */
 package paquete.service;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.OrderBy;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TemporalType;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -62,54 +65,151 @@ public class RegistroVacunasFacadeREST extends AbstractFacade<RegistroVacunas> {
         super.remove(super.find(id));
     }
 
-   /* @GET
-    @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON})
-    public RegistroVacunas find(@PathParam("id") Integer id) {
-        return super.find(id);
-    }*/
-
     @GET
     @Override
     @Produces({ MediaType.APPLICATION_JSON})
     public List<RegistroVacunas> findAll() {
         return super.findAll();
     }
-
-    /*@GET
-    @Path("{from}/{to}")
-    @Produces({ MediaType.APPLICATION_JSON})
-    public List<RegistroVacunas> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
-        return super.findRange(new int[]{from, to});
-    }*/
     
     @GET
-    @Path("/vacuna")
+    @Path("/vacuna/asc")
     @Produces({MediaType.APPLICATION_JSON})
     
-    public List<RegistroVacunas> buscar(@QueryParam("ciHijo") String ci) {
-        
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<RegistroVacunas> criteriaQuery = criteriaBuilder.createQuery(RegistroVacunas.class);
-        Root<RegistroVacunas> from = criteriaQuery.from(RegistroVacunas.class);
-        Predicate condition = criteriaBuilder.equal(from.get("ciHijo"), ci);
-        
-        criteriaQuery.where(condition);
-        Query query = em.createQuery(criteriaQuery);
+    public List<RegistroVacunas> vacuna_asc(@QueryParam("ciHijo") Integer ci) {
         
         
-        List<RegistroVacunas> lista = (List<RegistroVacunas>)query.getResultList();
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = :param "+
+                          "order by r.nombreVacuna asc";
+        Query query = em.createQuery(consulta);
+        query.setParameter("param", ci);
         
         
-        return lista;
+        
+        return query.getResultList();
+        
+    }
+    
+    @GET
+    @Path("/vacuna/desc")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> vacuna_desc(@QueryParam("ciHijo") Integer ci) {
+        
+        
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = :param "+
+                          "order by r.nombreVacuna desc";
+        Query query = em.createQuery(consulta);
+        query.setParameter("param", ci);
+        
+        
+        
+        return query.getResultList();
         
     }
 
     @GET
-    @Path("count")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String countREST() {
-        return String.valueOf(super.count());
+    @Path("/fecha/asc")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> fecha_asc(@QueryParam("ciHijo") Integer ci) {
+        
+        
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = :param "+
+                          "order by r.fechaAplicacion asc";
+        Query query = em.createQuery(consulta);
+        query.setParameter("param", ci);
+        
+        
+        
+        return query.getResultList();
+        
+    }
+    
+    @GET
+    @Path("/fecha/desc")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> fecha_desc(@QueryParam("ciHijo") Integer ci) {
+        
+        
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = :param "+
+                          "order by r.fechaAplicacion desc";
+        Query query = em.createQuery(consulta);
+        query.setParameter("param", ci);
+        
+        
+        
+        return query.getResultList();
+        
+    }
+    
+    @GET
+    @Path("/aplicada/asc")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> aplicada_asc(@QueryParam("ciHijo") Integer ci) {
+        
+        
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = :param "+
+                          "order by r.aplicada asc";
+        Query query = em.createQuery(consulta);
+        query.setParameter("param", ci);
+        
+        
+        
+        return query.getResultList();
+        
+    }
+    
+    @GET
+    @Path("/aplicada/desc")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> aplicada_desc(@QueryParam("ciHijo") Integer ci) {
+        
+        
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = :param "+
+                          "order by r.aplicada desc";
+        Query query = em.createQuery(consulta);
+        query.setParameter("param", ci);
+        
+        
+        
+        return query.getResultList();
+        
+    }
+    
+    @GET
+    @Path("/usuario")
+    @Produces({MediaType.APPLICATION_JSON})
+    
+    public List<RegistroVacunas> vacunas_aplicar(@QueryParam("email") String  email) {
+        Date fecha = new Date();
+        Calendar c = Calendar.getInstance(); 
+        c.setTime(fecha); 
+        c.add(Calendar.DATE, 2);
+        fecha = c.getTime();
+        
+        String consulta = "select r from RegistroVacunas r "+
+                          "where r.ciHijo = "+
+                            "all (select h.ci from Hijos h where h.email = :email) "+
+                          "and r.aplicada like 'No' "+
+                          "and r.fechaAplicacion < :fecha";
+        Query query = em.createQuery(consulta);
+        query.setParameter("email", email);
+        query.setParameter("fecha", fecha ,TemporalType.DATE);
+        
+        
+        
+        return query.getResultList();
+        
     }
 
     @Override
