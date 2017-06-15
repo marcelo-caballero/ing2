@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.4.8
 -- Dumped by pg_dump version 9.4.8
--- Started on 2017-05-28 23:32:28
+-- Started on 2017-06-14 21:46:15
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -287,7 +287,6 @@ COPY aplicacion (id, vacuna, dosis, tiempo_aplicacion) FROM stdin;
 --
 
 COPY hijos (nombre, apellido, email, fecha_nac, ci) FROM stdin;
-marcelo	caballero	marcecaballero91@gmail.com	2017-05-28	5555
 \.
 
 
@@ -298,30 +297,6 @@ marcelo	caballero	marcecaballero91@gmail.com	2017-05-28	5555
 --
 
 COPY registro_vacunas (id, id_vacuna, id_aplicacion, aplicada, fecha_aplicacion, nombre_vacuna, ci_hijo) FROM stdin;
-1	1	1	No	2017-05-28	BCG 1	5555
-2	2	2	No	2017-06-11	ROTAVIRUS 1	5555
-3	3	3	No	2017-06-11	IPV/OPV 1	5555
-4	4	4	No	2017-06-11	PENTAVALENTE 1	5555
-5	5	5	No	2017-06-11	PCV10 1	5555
-6	2	6	No	2017-06-25	ROTAVIRUS 2	5555
-7	3	7	No	2017-06-25	IPV/OPV 2	5555
-8	4	8	No	2017-06-25	PENTAVALENTE 2	5555
-9	5	9	No	2017-06-25	PCV10 2	5555
-10	3	10	No	2017-07-09	IPV/OPV 3	5555
-11	4	11	No	2017-07-09	PENTAVALENTE 3	5555
-12	11	12	No	2017-07-09	INFLUENZA 1	5555
-13	11	13	No	2017-07-09	INFLUENZA 2	5555
-14	6	14	No	2017-08-20	SPR 1	5555
-15	5	15	No	2017-08-20	PCV10 3	5555
-16	9	16	No	2017-08-20	AA 1	5555
-17	11	17	No	2017-08-20	INFLUENZA 3	5555
-18	7	18	No	2017-09-10	ANTIVARICELA 1	5555
-19	8	19	No	2017-09-10	HEPATITIS A 1	5555
-20	3	20	No	2017-10-01	IPV/OPV 4	5555
-21	10	21	No	2017-10-01	DTP1 1	5555
-22	3	22	No	2018-04-29	IPV/OPV 5	5555
-23	10	23	No	2018-04-29	DTP1 2	5555
-24	6	24	No	2018-04-29	SPR 2	5555
 \.
 
 
@@ -331,7 +306,7 @@ COPY registro_vacunas (id, id_vacuna, id_aplicacion, aplicada, fecha_aplicacion,
 -- Name: registro_vacunas_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('registro_vacunas_id_seq', 24, true);
+SELECT pg_catalog.setval('registro_vacunas_id_seq', 48, true);
 
 
 --
@@ -341,9 +316,6 @@ SELECT pg_catalog.setval('registro_vacunas_id_seq', 24, true);
 --
 
 COPY usuarios (id, nombre, correo) FROM stdin;
-4	prueba	prueba@gmail.com
-5	prueba2	prueba2@gmail.com
-7	marce	marcecaballero91@gmail.com
 \.
 
 
@@ -452,7 +424,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2017-05-28 23:32:29
+-- Completed on 2017-06-14 21:46:17
 
 --
 -- PostgreSQL database dump complete

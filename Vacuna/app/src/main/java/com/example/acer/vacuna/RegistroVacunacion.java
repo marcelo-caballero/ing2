@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.acer.vacuna.Modelo.Historial;
 
@@ -99,11 +100,11 @@ public class RegistroVacunacion extends AppCompatActivity {
 
                 servicio.execute(ci).get(4500, TimeUnit.MILLISECONDS);
             }catch(Exception e){
-
+                Toast.makeText(this, "Error en la comunicacion", Toast.LENGTH_SHORT).show();
 
             }
 
-        }
+    }
 
     /**
      * Carga la tabla con los valores obtenidos de la lista
@@ -331,12 +332,12 @@ public class RegistroVacunacion extends AppCompatActivity {
                 for(int i=0; i<respJSON.length();i++){
 
                     JSONObject obj = respJSON.getJSONObject(i);
-
+                    int ciHijo = obj.getInt("ciHijo");
                     String aplicada = obj.getString("aplicada");
                     String fecha = obj.getString("fechaAplicacion");
                     String nombreVacuna = obj.getString("nombreVacuna");
 
-                    historial = new Historial(nombreVacuna,fecha,aplicada);
+                    historial = new Historial(ciHijo,nombreVacuna,fecha,aplicada);
                     lista.add(historial);
 
                 }

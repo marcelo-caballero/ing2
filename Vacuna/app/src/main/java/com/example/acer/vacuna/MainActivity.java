@@ -17,6 +17,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.example.acer.vacuna.Alarma.AlarmReceiver;
+import com.example.acer.vacuna.Alarma.Alarma;
+import com.example.acer.vacuna.Alarma.Datos;
 import com.example.acer.vacuna.Modelo.Hijo;
 import com.example.acer.vacuna.Modelo.Usuario;
 import com.google.android.gms.auth.api.Auth;
@@ -48,7 +51,7 @@ import java.util.concurrent.TimeoutException;
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String direccion_ip = "http://192.168.42.4:8080";
+    public static final String direccion_ip = "http://192.168.42.55:8080";
     private ListView lv;
     private ArrayList<Hijo> lista_hijos = null;
     ArrayAdapter adaptador;
@@ -66,8 +69,9 @@ public class MainActivity extends AppCompatActivity
     private ProgressDialog progressDialog;
     private boolean error = false;
 
-    //Base de datos
-    //BDatos usdbh = new BDatos(this, "DBUsuarios", null, 1);
+    //Alarma
+    Datos usdbh = new Datos(this, "DBUsuarios", null, 1);
+    Alarma alarma = null;
 
 
     @Override
@@ -134,6 +138,13 @@ public class MainActivity extends AppCompatActivity
                                     lista_hijos = null;
                                 }
 
+                                //alarma
+                                if(usdbh.getAlarma() == 1){
+                                    alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                                    alarma.cancel();
+                                    usdbh.desprogramarAlarma();
+                                }
+
                                 updateUI(false);
                             }
                         });
@@ -147,6 +158,24 @@ public class MainActivity extends AppCompatActivity
                         new ResultCallback<Status>() {
                             @Override
                             public void onResult(Status status) {
+                                usuario = null;
+                                error = false;
+
+                                //limpia la lista y se lo notifica al adaptador
+                                if(lista_hijos != null){
+                                    lista_hijos.clear();
+                                    adaptador.notifyDataSetChanged();
+
+
+                                    lista_hijos = null;
+                                }
+
+                                //alarma
+                                if(usdbh.getAlarma() == 1){
+                                    alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                                    alarma.cancel();
+                                    usdbh.desprogramarAlarma();
+                                }
                                 updateUI(false);
                             }
                         });
@@ -186,7 +215,7 @@ public class MainActivity extends AppCompatActivity
             DetallesUsuarioRest usu_rest = new DetallesUsuarioRest();
 
             //congelamos la ejecucion del hilo principal
-            //esperando el resultado del servicio rest
+            //hasta obtener el resultado del servicio rest
             try{
                 usu_rest.execute(acct.getEmail()).get(4500,TimeUnit.MILLISECONDS);
             }catch(Exception e){
@@ -200,6 +229,10 @@ public class MainActivity extends AppCompatActivity
             }else{
                 if (usuario != null) {
 
+                    //Alarma
+                    usdbh.set_usuario(acct.getEmail());
+
+
                     txtNombre.setText(usuario.getNombre());
                     txtEmail.setText(usuario.getCorreo());
 
@@ -207,6 +240,13 @@ public class MainActivity extends AppCompatActivity
 
                         Toast.makeText(getApplicationContext(), "No tiene hijos", Toast.LENGTH_SHORT).show();
                     } else {
+                        //lanzamos la alarma al tener hijos//
+                        if (usdbh.getAlarma() == 0) {
+                            alarma = new Alarma(getApplicationContext(), AlarmReceiver.class);
+                            alarma.start();
+                            usdbh.programarAlarma();
+                        }
+
 
                         adaptador = new ArrayAdapter(this, android.R.layout.simple_list_item_1, lista_hijos);
                         lv.setAdapter(adaptador);
@@ -290,7 +330,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     /*
-    * Clase
+    * Servicio rest que valida la existencia del usuario
+    * y obtiene la lista de hijos.
     * */
     private class DetallesUsuarioRest extends AsyncTask<String,Void,Void> {
         Usuario usu = null;

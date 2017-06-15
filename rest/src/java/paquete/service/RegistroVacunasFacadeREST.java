@@ -199,7 +199,7 @@ public class RegistroVacunasFacadeREST extends AbstractFacade<RegistroVacunas> {
         
         String consulta = "select r from RegistroVacunas r "+
                           "where r.ciHijo = "+
-                            "all (select h.ci from Hijos h where h.email = :email) "+
+                            "any (select h.ci from Hijos h where h.email like :email and r.ciHijo = h.ci) "+
                           "and r.aplicada like 'No' "+
                           "and r.fechaAplicacion < :fecha";
         Query query = em.createQuery(consulta);

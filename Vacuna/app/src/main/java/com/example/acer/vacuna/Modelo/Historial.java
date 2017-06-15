@@ -15,11 +15,21 @@ public class Historial {
     private String fecha;
     private String aplicada;
     private Date date;
+    private int ciHijo;
 
-    public Historial(String vacuna, String fecha, String aplicada) {
+    public Historial(int ciHijo,String vacuna, String fecha, String aplicada) {
+        this.ciHijo = ciHijo;
         this.vacuna = vacuna;
         this.fecha = fechaDate(fecha);
         this.aplicada = aplicada;
+    }
+
+    public int getCiHijo() {
+        return ciHijo;
+    }
+
+    public void setCiHijo(int ciHijo) {
+        this.ciHijo = ciHijo;
     }
 
     public String getVacuna() {

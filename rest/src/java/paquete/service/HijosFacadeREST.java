@@ -105,6 +105,25 @@ public class HijosFacadeREST extends AbstractFacade<Hijos> {
         return query.getResultList();
         
     }
+    
+    @GET
+    @Path("/hijoInfo")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Hijos info_hijo(@QueryParam("ci") Integer ci) {
+        
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Hijos> criteriaQuery = criteriaBuilder.createQuery(Hijos.class);
+        Root<Hijos> from = criteriaQuery.from(Hijos.class);
+        Predicate condition = criteriaBuilder.equal(from.get("ci"), ci);
+        
+        criteriaQuery.where(condition);
+        Query query = em.createQuery(criteriaQuery);
+        
+        return (Hijos)query.getSingleResult();
+        
+    }
+
+    
 
     @Override
     protected EntityManager getEntityManager() {

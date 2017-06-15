@@ -1,0 +1,33 @@
+Software Vacunas
+
+version minima de android : 4.4.2   (API 19)
+
+INFORMACION 
+
+Para realizar las pruebas de aplicacion cambie en:
+-Android Studio
+
+Solamente cambie el ip de la variable direccion de la clase MainActivity para conectarse con el servidor web.
+Con el fin de probar las notificaciones, se establecio de forma predeterminada que las notificaciones se realicen por cada minuto.
+
+- Base de datos Postgres
+
+*En la tabla usuarios, ingrese los datos sobre su cuenta de usuario
+*En la tabla hijos, ingrese datos relacionado al hijo
+
+
+MODO DE USO:
+Al iniciar la aplicacion, debera presionar el boton Acceder para ingresar a su cuenta de gmail.
+
+Luego de loguearse, el sistema verificará la existencia del usuario en su base dedatos utilizando los datos sobre su cuenta de gmail.
+
+Al existir el usuario, la aplicacion le mostrará una lista de sus hijos. Al  seleccionar uno de los hijos de la lista, la aplicacion desplegara una tabla que contiene informacion sobre las vacunas obligatorias del hijo seleccionado
+
+La aplicacion permite ordenar la tabla de forma ascendente o descendente de acuerdo a la cabeceras de la tabla, para hacerlo solamente presione la cabecera de la tabla.
+
+Para desloguearse, solamente regrese a la pantalla inicial y presione logout
+
+La aplicacion se conectará de forma automatica con el servidor todos los dias, para notificarle si un hijo necesita la aplicacion de una vacuna en los proximos 2 dias.
+
+Para que esta aplicacion funcione correctamente, necesita que el dispositivo este conectado a Internet.
+
