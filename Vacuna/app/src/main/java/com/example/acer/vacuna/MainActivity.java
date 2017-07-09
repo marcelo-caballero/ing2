@@ -5,8 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -35,23 +33,24 @@ import com.google.android.gms.common.api.Status;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
-    public static final String direccion_ip = "http://192.168.42.55:8080";
+    public static final String direccion_ip = "http://192.168.42.95:8080";
     private ListView lv;
     private ArrayList<Hijo> lista_hijos = null;
     ArrayAdapter adaptador;
@@ -254,7 +253,7 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                 Intent intent = new Intent(getApplicationContext(), RegistroVacunacion.class);
-                                intent.putExtra("ci", lista_hijos.get(position).getCi());
+                                intent.putExtra("id", lista_hijos.get(position).getId());
                                 intent.putExtra("direccion_ip",direccion_ip);
                                 startActivity(intent);
                             }
@@ -346,13 +345,20 @@ public class MainActivity extends AppCompatActivity
             String correo = params[0];
 
             //URL del sw para obtener usuario
-            HttpGet get_usuario = new HttpGet(direccion_ip + "/rest/webresources/paquete.usuarios/usuario?correo=" + correo);
+            HttpPost post_usuario = new HttpPost(direccion_ip + "/rest1/servicioWeb/usuario/obtener");
 
-            get_usuario.setHeader("content-type", "application/json");
+            post_usuario.setHeader("content-type", "application/json");
 
 
             try{
-                HttpResponse resp = http_usuario.execute(get_usuario);
+
+                //Construimos el objeto json
+                JSONObject dato = new JSONObject();
+                dato.put("correo",correo);
+                StringEntity entity = new StringEntity(dato.toString());
+                post_usuario.setEntity(entity);
+
+                HttpResponse resp = http_usuario.execute(post_usuario);
                 String respStr = EntityUtils.toString(resp.getEntity());
 
                 JSONObject respJSON = new JSONObject(respStr);
@@ -370,14 +376,22 @@ public class MainActivity extends AppCompatActivity
 
             //URL para obtener la lista de hijos
             if(usu != null) {
-                HttpClient http_hijos = new DefaultHttpClient();
-                HttpGet get_hijos =
-                        new HttpGet(direccion_ip + "/rest/webresources/paquete.hijos/hijos?correo=" + correo);
 
-                get_hijos.setHeader("content-type", "application/json");
+                HttpClient http_hijos = new DefaultHttpClient();
+                HttpPost post_hijos =
+                        new HttpPost(direccion_ip + "/rest1/servicioWeb/hijo/listarHijos");
+
+                post_hijos.setHeader("content-type", "application/json");
                 try
                 {
-                    HttpResponse resp = http_hijos.execute(get_hijos);
+                    //Construimos el objeto json
+                    JSONObject dato = new JSONObject();
+                    dato.put("idPadre",usu.getId());
+                    StringEntity entity = new StringEntity(dato.toString());
+                    post_hijos.setEntity(entity);
+
+
+                    HttpResponse resp = http_hijos.execute(post_hijos);
                     String respStr = EntityUtils.toString(resp.getEntity());
 
                     JSONArray respJSON = new JSONArray(respStr);
@@ -388,16 +402,16 @@ public class MainActivity extends AppCompatActivity
                     Hijo hijo;
                     for(int i=0; i<respJSON.length();i++){
 
+
                         JSONObject obj = respJSON.getJSONObject(i);
 
-                        String apellido = obj.getString("apellido");
-                        int ci = obj.getInt("ci");
-
-                        String email = obj.getString("email");
                         String fecha_nac = obj.getString("fechaNac");
+                        int id = obj.getInt("id");
+                        int idPadre = obj.getInt("idPadre");
                         String nombre = obj.getString("nombre");
+                        String sexo = obj.getString("sexo");
 
-                        hijo = new Hijo(ci,nombre,apellido,email,fecha_nac);
+                        hijo = new Hijo(id,nombre,sexo,idPadre,fecha_nac);
                         list.add(hijo);
 
                     }

@@ -17,6 +17,8 @@ import com.example.acer.vacuna.Modelo.Historial;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -36,7 +38,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     int NOTIF_ALERTA_ID = 1;
 
 
-    String direccion = MainActivity.direccion_ip+"/rest/webresources";
+    String direccion = MainActivity.direccion_ip;
 
     ArrayList<Historial> lista_historial = new ArrayList<Historial>();
     Hijo hijo = null;
@@ -142,12 +144,17 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             HttpClient httpClient = new DefaultHttpClient();
 
-            HttpGet del = new HttpGet(direccion+"/paquete.registrovacunas/usuario?email=" + email);
-            del.setHeader("content-type", "application/json");
+            HttpPost postAplicacion = new HttpPost(direccion+"/rest1/servicioWeb/vacunas/aplicacionVacunas?dias=2");
+            postAplicacion.setHeader("content-type", "application/json");
 
             try
             {
-                HttpResponse resp = httpClient.execute(del);
+                JSONObject dato = new JSONObject();
+                dato.put("correo",email);
+                StringEntity entity = new StringEntity(dato.toString());
+                postAplicacion.setEntity(entity);
+
+                HttpResponse resp = httpClient.execute(postAplicacion);
                 String respStr = EntityUtils.toString(resp.getEntity());
 
                 JSONArray respJSON = new JSONArray(respStr);
@@ -157,12 +164,12 @@ public class AlarmReceiver extends BroadcastReceiver {
                 for(int i=0; i<respJSON.length();i++){
 
                     JSONObject obj = respJSON.getJSONObject(i);
-                    int ciHijo = obj.getInt("ciHijo");
+                    int idHijo = obj.getInt("idHijo");
                     String aplicada = obj.getString("aplicada");
                     String fecha = obj.getString("fechaAplicacion");
-                    String nombreVacuna = obj.getString("nombreVacuna");
+                    String nombreVacuna = obj.getString("nombre");
 
-                    historial = new Historial(ciHijo,nombreVacuna,fecha,aplicada);
+                    historial = new Historial(idHijo,nombreVacuna,fecha,aplicada);
                     lista_historial.add(historial);
 
                 }
@@ -189,25 +196,30 @@ public class AlarmReceiver extends BroadcastReceiver {
             HttpClient httpClient = new DefaultHttpClient();
 
 
-            HttpGet del = new HttpGet(direccion+"/paquete.hijos/hijoInfo?ci=" + ci);
-            del.setHeader("content-type", "application/json");
+            HttpPost postHijo = new HttpPost(direccion+"/rest1/servicioWeb/hijo/obtenerHijo");
+            postHijo.setHeader("content-type", "application/json");
 
             try
             {
-                HttpResponse resp = httpClient.execute(del);
+                JSONObject dato = new JSONObject();
+                dato.put("id",ci);
+                StringEntity entity = new StringEntity(dato.toString());
+                postHijo.setEntity(entity);
+
+                HttpResponse resp = httpClient.execute(postHijo);
                 String respStr = EntityUtils.toString(resp.getEntity());
 
                 JSONObject obj = new JSONObject(respStr);
 
 
-                String apellido = obj.getString("apellido");
-                int cin = obj.getInt("ci");
+                String sexo = obj.getString("sexo");
+                int id = obj.getInt("id");
 
-                String email = obj.getString("email");
+                int idPadre = obj.getInt("idPadre");
                 String fecha_nac = obj.getString("fechaNac");
                 String nombre = obj.getString("nombre");
 
-                hijo = new Hijo(cin,nombre,apellido,email,fecha_nac);
+                hijo = new Hijo(id,nombre,sexo,idPadre,fecha_nac);
             }
             catch(Exception ex)
             {

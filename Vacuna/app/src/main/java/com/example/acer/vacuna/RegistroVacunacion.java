@@ -16,6 +16,8 @@ import com.example.acer.vacuna.Modelo.Historial;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -60,7 +62,7 @@ public class RegistroVacunacion extends AppCompatActivity {
         TextView c_fecha;
         TextView c_aplicada;
 
-        String ci ;// cedula del hijo
+        int idHijo;// cedula del hijo
         Estado e; //el estado del orden que se encuentra la tabla
 
 
@@ -70,7 +72,7 @@ public class RegistroVacunacion extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_registro_vacunacion);
 
-            ci = Integer.toString(getIntent().getExtras().getInt("ci"));
+            idHijo = getIntent().getExtras().getInt("id");
 
             //la tabla ordenada por vacuna en forma asc
             e = new Estado(VACUNA ,ASC);
@@ -98,7 +100,7 @@ public class RegistroVacunacion extends AppCompatActivity {
             obtenerVacuna servicio = new obtenerVacuna();
             try{
 
-                servicio.execute(ci).get(4500, TimeUnit.MILLISECONDS);
+                servicio.execute(idHijo).get(4500, TimeUnit.MILLISECONDS);
             }catch(Exception e){
                 Toast.makeText(this, "Error en la comunicacion", Toast.LENGTH_SHORT).show();
 
@@ -282,47 +284,57 @@ public class RegistroVacunacion extends AppCompatActivity {
             });
         }
 
-    private class obtenerVacuna extends AsyncTask<String,Void,Void> {
+    private class obtenerVacuna extends AsyncTask<Integer,Void,Void> {
         Historial historial;
-        String direccion = getIntent().getExtras().getString("direccion_ip") + "/rest/webresources/paquete.registrovacunas";
-        protected Void doInBackground(String... params) {
+        String direccion = getIntent().getExtras().getString("direccion_ip")+
+                "/rest1/servicioWeb/vacunas/tablaVacunacion";
+
+        protected Void doInBackground(Integer... params) {
 
             boolean resul = true;
 
-            String ci = params[0];
+            int idHijo = params[0];
 
-            HttpClient httpClient = new DefaultHttpClient();
+            String campo="nombre";
+            String orden="asc";
 
-
-            HttpGet del = new HttpGet(direccion+"/vacuna/asc?ciHijo=" + ci);
 
             if(e.columna == VACUNA) {
+                campo = "nombre";
                 if(e.orden == ASC){
-                    del = new HttpGet(direccion+"/vacuna/asc?ciHijo=" + ci);
+                    orden="asc";
                 }else{
-                    del = new HttpGet(direccion+"/vacuna/desc?ciHijo=" + ci);
+                    orden="desc";
                 }
             }
             if(e.columna == FECHA) {
+                campo = "fechaAplicacion";
                 if(e.orden == ASC){
-                    del = new HttpGet(direccion+"/fecha/asc?ciHijo=" + ci);
+                    orden="asc";
                 }else{
-                    del = new HttpGet(direccion+"/fecha/desc?ciHijo=" + ci);
+                    orden="desc";
                 }
             }
             if(e.columna == APLICADA) {
+                campo = "aplicada";
                 if(e.orden == ASC){
-                    del = new HttpGet(direccion+"/aplicada/asc?ciHijo=" + ci);
+                    orden="asc";
                 }else{
-                    del = new HttpGet(direccion+"/aplicada/desc?ciHijo=" + ci);
+                    orden="desc";
                 }
             }
-
-            del.setHeader("content-type", "application/json");
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpPost postTabla = new HttpPost(direccion+"?campo="+campo+"&orden="+orden);
+            postTabla.setHeader("content-type", "application/json");
 
             try
             {
-                HttpResponse resp = httpClient.execute(del);
+                JSONObject dato = new JSONObject();
+                dato.put("idHijo",idHijo);
+                StringEntity entity = new StringEntity(dato.toString());
+                postTabla.setEntity(entity);
+
+                HttpResponse resp = httpClient.execute(postTabla);
                 String respStr = EntityUtils.toString(resp.getEntity());
 
                 JSONArray respJSON = new JSONArray(respStr);
@@ -332,12 +344,12 @@ public class RegistroVacunacion extends AppCompatActivity {
                 for(int i=0; i<respJSON.length();i++){
 
                     JSONObject obj = respJSON.getJSONObject(i);
-                    int ciHijo = obj.getInt("ciHijo");
+                    int id = obj.getInt("idHijo");
                     String aplicada = obj.getString("aplicada");
                     String fecha = obj.getString("fechaAplicacion");
-                    String nombreVacuna = obj.getString("nombreVacuna");
+                    String nombreVacuna = obj.getString("nombre")+" - "+obj.getInt("dosis");
 
-                    historial = new Historial(ciHijo,nombreVacuna,fecha,aplicada);
+                    historial = new Historial(id,nombreVacuna,fecha,aplicada);
                     lista.add(historial);
 
                 }

@@ -4,40 +4,42 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Calendar;
 
 /**
  * Clase Hijo
  * @author marcelo
  */
 public class Hijo {
-    private int ci;
+    private int id;
     private String nombre;
-    private String apellido;
-    private String email;
-    private Date fecha_nac;
+    private String sexo;
+    private int idPadre;
+    private Date fechaNac;
 
-    public Hijo(int ci, String nombre, String apellido, String email, String fecha_nac){
-        this.ci = ci;
+
+    public Hijo(int id, String nombre, String sexo, int idPadre, String fechaNac){
+        this.id = id;
         this.nombre = nombre;
-        this.apellido = apellido;
-        this.email = email;
-        this.fecha_nac = fechaDate(fecha_nac);
+        this.sexo = sexo;
+        this.idPadre = idPadre;
+        this.fechaNac = fechaDate(fechaNac);
     }
 
-    public Date getFecha_nac() {
-        return fecha_nac;
+    public Date getFechaNac() {
+        return fechaNac;
     }
 
-    public void setFecha_nac(Date fecha_nac) {
-        this.fecha_nac = fecha_nac;
+    public void setFechaNac(Date fechaNac) {
+        this.fechaNac = fechaNac;
     }
 
-    public int getCi() {
-        return ci;
+    public int getId() {
+        return id;
     }
 
-    public void setCi(int ci) {
-        this.ci = ci;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNombre() {
@@ -48,20 +50,20 @@ public class Hijo {
         this.nombre = nombre;
     }
 
-    public String getApellido() {
-        return apellido;
+    public String getSexo() {
+        return sexo;
     }
 
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
+    public void setSexo(String sexo) {
+        this.sexo = sexo;
     }
 
-    public String getEmail() {
-        return email;
+    public int getIdPadre() {
+        return idPadre;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setIdPadre(int idPadre) {
+        this.idPadre = idPadre;
     }
 
     protected Date fechaDate(String fecha){
@@ -76,13 +78,30 @@ public class Hijo {
         return date;
     }
 
+    public int edad(){
+        int edad = -1;
+        if(fechaNac != null) {
+            Calendar nacimiento = Calendar.getInstance();
+            nacimiento.setTime(fechaNac);
+            Calendar hoy = Calendar.getInstance();
+            hoy.setTime(new Date());
+            edad = hoy.get(Calendar.YEAR) - nacimiento.get(Calendar.YEAR);
+            if (nacimiento.get(Calendar.MONTH) > hoy.get(Calendar.MONTH) ||
+                    (nacimiento.get(Calendar.MONTH) == hoy.get(Calendar.MONTH) && nacimiento.get(Calendar.DATE) > hoy.get(Calendar.DATE))) {
+                edad--;
+            }
+
+        }
+        return edad;
+    }
+
     @Override
     public String toString() {
 
-        SimpleDateFormat sdf2 = new SimpleDateFormat("dd-MM-yyyy",Locale.ROOT);
-        String fecha = sdf2.format(fecha_nac);
+        /*SimpleDateFormat sdf2 = new SimpleDateFormat("dd-MM-yyyy",Locale.ROOT);
+        String fecha = sdf2.format(fechaNac);*/
 
-        return "" + nombre + " " + apellido + " - " + fecha ;
+        return "" + nombre + ", " + edad() + ", " + sexo ;
 
     }
 }
